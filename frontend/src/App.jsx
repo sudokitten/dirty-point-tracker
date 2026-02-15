@@ -8,7 +8,7 @@ import { getChampionIconUrl, getItemIconUrl, getProfileIconUrl, DD_VERSION } fro
 import { getRuneIconUrl, getStyleIconUrl } from './constants/runes.js';
 import { getSpellIconUrl } from './constants/spells.js';
 import { getQueueName } from './constants/queues.js';
-import { normalizeRank } from './utils/rankUtils.js';
+import { normalizeRank, compareRanks } from './utils/rankUtils.js';
 import { formatTimeAgo } from './utils/formatters.js';
 
 const queryClient = new QueryClient({
@@ -25,35 +25,35 @@ const RankCard = ({ player }) => {
   if (!player) return null;
 
   return (
-    <div className="glass-panel px-6 pt-4 pb-5 rounded-2xl flex flex-col items-center transition-all duration-300 hover:border-nord8/30 hover:shadow-[0_0_30px_rgba(136,192,208,0.08)]">
+    <div className="glass-panel px-4 sm:px-6 pt-4 pb-5 rounded-2xl flex flex-col items-center transition-all duration-300 hover:border-nord8/30 hover:shadow-[0_0_30px_rgba(136,192,208,0.08)]">
       {/* Player Icon + Name + Level */}
       <div className="flex flex-col items-center">
         <div className="relative">
           <img
             src={getProfileIconUrl(player.profileIconId)}
-            className="w-16 h-16 rounded-full border-2 border-nord8/30 shadow-lg shadow-nord8/10"
+            className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-nord8/30 shadow-lg shadow-nord8/10"
             alt=""
           />
           <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-nord1 text-nord8 text-[10px] font-black px-2 py-0.5 rounded-full border border-nord8/20">
             {player.summonerLevel}
           </span>
         </div>
-        <h2 className="mt-3 text-2xl font-black tracking-tight uppercase text-nord6">{player.gameName}</h2>
+        <h2 className="mt-3 text-lg sm:text-2xl font-black tracking-tight uppercase text-nord6">{player.gameName}</h2>
       </div>
 
       {/* Rank Emblem */}
       {solo?.tier && (
-        <img src={getRankEmblemUrl(solo.tier)} className="w-96 h-96 lg:w-[28rem] lg:h-[28rem] object-contain -my-32 lg:-my-36" alt="Rank" />
+        <img src={getRankEmblemUrl(solo.tier)} className="w-48 h-48 sm:w-96 sm:h-96 lg:w-[28rem] lg:h-[28rem] object-contain -my-12 sm:-my-32 lg:-my-36" alt="Rank" />
       )}
 
       {/* Rank Info */}
-      <div className="mt-1 text-lg font-bold text-nord13 tracking-wide">
+      <div className="mt-1 text-base sm:text-lg font-bold text-nord13 tracking-wide">
         {solo ? `${solo.tier} ${solo.rank}` : 'Unranked'}
       </div>
       {solo && (
         <>
-          <div className="mt-0.5 text-2xl font-black text-nord6">{solo.lp} <span className="text-sm font-bold text-nord9">LP</span></div>
-          <div className="mt-2 flex items-center gap-3 text-xs font-bold uppercase tracking-widest">
+          <div className="mt-0.5 text-xl sm:text-2xl font-black text-nord6">{solo.lp} <span className="text-sm font-bold text-nord9">LP</span></div>
+          <div className="mt-2 flex items-center gap-2 sm:gap-3 text-[10px] sm:text-xs font-bold uppercase tracking-widest">
             <span className="text-nord14">{solo.wins}W</span>
             <span className="text-nord3">/</span>
             <span className="text-nord11">{solo.losses}L</span>
@@ -337,60 +337,60 @@ const MatchCard = ({ match, puuid }) => {
       {/* DENSE HEADER ROW */}
       <div
         onClick={() => setIsExpanded(!isExpanded)}
-        className={`flex items-center justify-between p-3 cursor-pointer transition-colors gap-4 h-[120px] ${
+        className={`flex items-center p-2 sm:p-3 cursor-pointer transition-colors gap-2 sm:gap-4 ${
           isWin
             ? 'border-l-4 border-l-nord14 bg-gradient-to-r from-nord14/15 via-nord14/8 to-nord1/80 hover:from-nord14/20 hover:via-nord14/12'
             : 'border-l-4 border-l-nord11 bg-gradient-to-r from-nord11/15 via-nord11/8 to-nord1/80 hover:from-nord11/20 hover:via-nord11/12'
         }`}
       >
         {/* Left: Champ, Spells, Runes */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <div className="relative">
-            <img src={getChampionIconUrl(match.champion?.name)} className={`w-12 h-12 rounded-md border ${isWin ? 'border-nord14/30' : 'border-nord11/30'}`} alt="" />
-            <span className={`absolute -bottom-1 -right-1 text-[10px] px-1 rounded-full border text-nord4 ${isWin ? 'bg-nord14/20 border-nord14/30' : 'bg-nord11/20 border-nord11/30'}`}>
+            <img src={getChampionIconUrl(match.champion?.name)} className={`w-10 h-10 sm:w-12 sm:h-12 rounded-md border ${isWin ? 'border-nord14/30' : 'border-nord11/30'}`} alt="" />
+            <span className={`absolute -bottom-1 -right-1 text-[8px] sm:text-[10px] px-0.5 sm:px-1 rounded-full border text-nord4 ${isWin ? 'bg-nord14/20 border-nord14/30' : 'bg-nord11/20 border-nord11/30'}`}>
               {playerRow.champLevel || 18}
             </span>
           </div>
           <div className="grid grid-cols-2 gap-0.5">
-            <img src={getSpellIconUrl(playerRow.summoner1Id)} className="w-5 h-5 rounded" alt="" />
-            <img src={getSpellIconUrl(playerRow.summoner2Id)} className="w-5 h-5 rounded" alt="" />
-            <img src={getRuneIconUrl(playerRow.primaryRuneId || playerRow.primaryRunes?.[0])} className="w-5 h-5 rounded-full bg-nord0/50" alt="" />
-            <img src={getStyleIconUrl(playerRow.secondaryStyleId)} className="w-4 h-4 m-auto opacity-60" alt="" />
+            <img src={getSpellIconUrl(playerRow.summoner1Id)} className="w-4 h-4 sm:w-5 sm:h-5 rounded" alt="" />
+            <img src={getSpellIconUrl(playerRow.summoner2Id)} className="w-4 h-4 sm:w-5 sm:h-5 rounded" alt="" />
+            <img src={getRuneIconUrl(playerRow.primaryRuneId || playerRow.primaryRunes?.[0])} className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-nord0/50" alt="" />
+            <img src={getStyleIconUrl(playerRow.secondaryStyleId)} className="w-3.5 h-3.5 sm:w-4 sm:h-4 m-auto opacity-60" alt="" />
           </div>
-          <div className="ml-1">
-            <div className={`text-sm font-black uppercase leading-tight ${isWin ? 'text-nord14' : 'text-nord11'}`}>
+          <div className="ml-0.5 sm:ml-1">
+            <div className={`text-xs sm:text-sm font-black uppercase leading-tight ${isWin ? 'text-nord14' : 'text-nord11'}`}>
               {isWin ? 'Victory' : 'Defeat'}
             </div>
-            <div className="text-[9px] text-nord9/50 font-bold uppercase">{formatTimeAgo(match.gameCreation)}</div>
+            <div className="text-[8px] sm:text-[9px] text-nord9/50 font-bold uppercase">{formatTimeAgo(match.gameCreation)}</div>
           </div>
         </div>
 
-        {/* Center: Detailed Stats */}
-        <div className={`hidden sm:flex flex-1 justify-around items-center px-4 border-x whitespace-nowrap gap-4 ${isWin ? 'border-nord14/15' : 'border-nord11/15'}`}>
+        {/* Center: KDA + Stats — always visible, compact on mobile */}
+        <div className={`flex flex-1 items-center justify-center sm:justify-around px-1 sm:px-4 sm:border-x whitespace-nowrap gap-2 sm:gap-4 min-w-0 ${isWin ? 'sm:border-nord14/15' : 'sm:border-nord11/15'}`}>
           <div className="text-center">
-            <div className="text-sm font-bold">
+            <div className="text-xs sm:text-sm font-bold">
               <span className="text-nord14">{playerRow.kills}</span>
-              <span className="text-nord4/40"> / </span>
+              <span className="text-nord4/40">/</span>
               <span className="text-nord11">{playerRow.deaths}</span>
-              <span className="text-nord4/40"> / </span>
+              <span className="text-nord4/40">/</span>
               <span className="text-nord8">{playerRow.assists}</span>
             </div>
-            <div className="text-[10px] font-black text-nord9/50 uppercase">{kdaRatio}:1 KDA</div>
+            <div className="text-[8px] sm:text-[10px] font-black text-nord9/50 uppercase">{kdaRatio}:1</div>
           </div>
-          <div className="text-center hidden md:block">
-            <div className="text-xs font-bold text-nord7">P/Kill {killParticipation}%</div>
-            <div className="text-[10px] font-black text-nord9/40 uppercase">{getQueueName(match.queueId)}</div>
-          </div>
-          <div className="text-center">
+          <div className="text-center hidden sm:block">
             <div className="text-xs font-bold text-nord13">CS {cs} <span className="text-nord13/50">({csPerMin})</span></div>
             <div className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${isWin ? 'bg-nord14/15 text-nord14' : 'bg-nord11/15 text-nord11'}`}>
               {Math.floor(match.gameDuration / 60)}m {match.gameDuration % 60}s
             </div>
           </div>
+          <div className="text-center hidden md:block">
+            <div className="text-xs font-bold text-nord7">P/Kill {killParticipation}%</div>
+            <div className="text-[10px] font-black text-nord9/40 uppercase">{getQueueName(match.queueId)}</div>
+          </div>
         </div>
 
         {/* Right: Items and Multi-kills */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <div className="hidden lg:flex gap-0.5 items-center">
             {[0, 1, 2, 3, 4, 5].map((idx) => {
               const itemId = (playerRow.items || [])[idx] || 0;
@@ -407,7 +407,7 @@ const MatchCard = ({ match, puuid }) => {
             )}
           </div>
           <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''} ${isWin ? 'text-nord14/50' : 'text-nord11/50'}`}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M6 9l6 6 6-6"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M6 9l6 6 6-6"/></svg>
           </div>
         </div>
       </div>
@@ -421,7 +421,7 @@ const MatchCard = ({ match, puuid }) => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                className={`px-4 sm:px-6 py-2.5 sm:py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
                   activeTab === tab ? 'text-nord8 border-b-2 border-nord8 bg-nord8/5' : 'text-nord9/40 hover:text-nord9'
                 }`}
               >
@@ -430,7 +430,7 @@ const MatchCard = ({ match, puuid }) => {
             ))}
           </div>
 
-          <div className="p-6">
+          <div className="p-3 sm:p-6">
             {activeTab === 'overview' && <MatchOverviewTab match={match} playerRow={playerRow} puuid={puuid} />}
             {activeTab === 'build' && <MatchBuildTab match={match} playerRow={playerRow} puuid={puuid} />}
           </div>
@@ -454,13 +454,13 @@ const BattleFeed = ({ players }) => {
   const extraCount = Math.max(p1Matches.length, p2Matches.length) - INITIAL_DISPLAY;
 
   return (
-    <section className="max-w-[1600px] mx-auto mt-20 px-4 mb-20">
-      <div className="flex flex-col items-center mb-12">
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-nord8/20 to-transparent mb-8" />
+    <section className="max-w-[1600px] mx-auto mt-10 sm:mt-20 px-2 sm:px-4 mb-10 sm:mb-20">
+      <div className="flex flex-col items-center mb-6 sm:mb-12">
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-nord8/20 to-transparent mb-4 sm:mb-8" />
         <div className="flex items-center gap-3">
-          <span className="w-12 h-[1px] bg-gradient-to-r from-transparent to-nord8/40"></span>
-          <h3 className="text-3xl font-black uppercase tracking-[0.2em] text-nord8">Recent Matches</h3>
-          <span className="w-12 h-[1px] bg-gradient-to-l from-transparent to-nord8/40"></span>
+          <span className="w-8 sm:w-12 h-[1px] bg-gradient-to-r from-transparent to-nord8/40"></span>
+          <h3 className="text-xl sm:text-3xl font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] text-nord8">Recent Matches</h3>
+          <span className="w-8 sm:w-12 h-[1px] bg-gradient-to-l from-transparent to-nord8/40"></span>
         </div>
       </div>
 
@@ -470,19 +470,21 @@ const BattleFeed = ({ players }) => {
         <div className="text-center text-nord9/40 text-sm py-12">No recent matches</div>
       ) : (
         <>
-          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             {/* Central Decorative Spine */}
             <div className="absolute left-1/2 -translate-x-1/2 w-px h-full bg-gradient-to-b from-nord8/20 via-nord9/10 to-transparent hidden md:block" />
 
             {/* Player 1 Column */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
+              <h4 className="text-xs font-black uppercase tracking-widest text-nord8/50 md:hidden">{players[0]?.gameName}</h4>
               {p1Displayed.map((m, idx) => (
                 <MatchCard key={m?.matchId || idx} match={m} puuid={players[0]?.puuid} />
               ))}
             </div>
 
             {/* Player 2 Column */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
+              <h4 className="text-xs font-black uppercase tracking-widest text-nord8/50 md:hidden">{players[1]?.gameName}</h4>
               {p2Displayed.map((m, idx) => (
                 <MatchCard key={m?.matchId || idx} match={m} puuid={players[1]?.puuid} />
               ))}
@@ -513,6 +515,9 @@ const BattleFeed = ({ players }) => {
 function AppContent() {
   const { data: players = [], isLoading } = usePlayers();
 
+  // Sort so highest rank is on the left
+  const sorted = [...players].sort((a, b) => compareRanks(a.rank, b.rank));
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -522,33 +527,33 @@ function AppContent() {
   }
 
   return (
-    <div className="min-h-screen p-4 sm:p-8">
+    <div className="min-h-screen p-2 sm:p-4 md:p-8">
       {/* HEADER */}
-      <header className="max-w-[1600px] mx-auto mb-16 pt-12 text-center">
+      <header className="max-w-[1600px] mx-auto mb-8 sm:mb-16 pt-6 sm:pt-12 text-center">
         <div className="flex items-center justify-center gap-4 mb-3">
-          <div className="h-[1px] w-16 bg-gradient-to-r from-transparent to-nord7/40"></div>
+          <div className="h-[1px] w-8 sm:w-16 bg-gradient-to-r from-transparent to-nord7/40"></div>
           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-nord7">Season 2026</span>
-          <div className="h-[1px] w-16 bg-gradient-to-l from-transparent to-nord7/40"></div>
+          <div className="h-[1px] w-8 sm:w-16 bg-gradient-to-l from-transparent to-nord7/40"></div>
         </div>
-        <h1 className="text-5xl sm:text-6xl font-black tracking-[0.15em] uppercase text-nord8">League of Legends</h1>
-        <p className="mt-2 text-xs font-bold uppercase tracking-[0.3em] text-nord9/50">Ranked Race</p>
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-[0.1em] sm:tracking-[0.15em] uppercase text-nord8">League of Legends</h1>
+        <p className="mt-2 text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-nord9/50">Ranked Race</p>
       </header>
 
-      <main className="max-w-[1600px] mx-auto space-y-12">
+      <main className="max-w-[1600px] mx-auto space-y-8 sm:space-y-12">
         {/* VS GRID */}
-        <section className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-8 items-center">
-          <RankCard player={players[0]} />
+        <section className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 sm:gap-8 items-center">
+          <RankCard player={sorted[0]} />
 
-          <div className="flex flex-col items-center">
-            <div className="vs-glitch text-6xl font-black italic text-nord8/25 select-none">VS</div>
-            <div className="h-24 w-[1px] bg-gradient-to-b from-transparent via-nord8/15 to-transparent"></div>
+          <div className="flex flex-col items-center py-2 sm:py-0">
+            <div className="vs-glitch text-4xl sm:text-6xl font-black italic text-nord8/25 select-none">VS</div>
+            <div className="h-12 sm:h-24 w-[1px] bg-gradient-to-b from-transparent via-nord8/15 to-transparent hidden md:block"></div>
           </div>
 
-          <RankCard player={players[1]} />
+          <RankCard player={sorted[1]} />
         </section>
 
         {/* BATTLE FEED */}
-        <BattleFeed players={players} />
+        <BattleFeed players={sorted} />
       </main>
     </div>
   );
