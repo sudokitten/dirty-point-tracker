@@ -378,6 +378,20 @@ async function startServer() {
   } catch (error) {
     console.error('Failed to start polling:', error);
   }
+
+  // Keep-alive: ping our own health endpoint every 10 minutes to prevent Render free tier from sleeping
+  const RENDER_URL = process.env.RENDER_EXTERNAL_URL || process.env.DEPLOYED_BACKEND_URL;
+  if (RENDER_URL) {
+    setInterval(async () => {
+      try {
+        const res = await fetch(`${RENDER_URL}/api/health`);
+        console.log(`Keep-alive ping: ${res.status}`);
+      } catch (err) {
+        console.error('Keep-alive ping failed:', err.message);
+      }
+    }, 10 * 60 * 1000);
+    console.log(`🏓 Keep-alive pinging ${RENDER_URL} every 10 minutes`);
+  }
 }
 
 startServer();
