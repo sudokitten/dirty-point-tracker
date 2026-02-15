@@ -15,7 +15,8 @@ class PollingService {
   async initializePlayers() {
     console.log('=== PHASE 1: BASELINE INITIALIZATION ===');
 
-    // First, ensure all players from trackedPlayers.js are in DB and marked as tracked
+    // Always re-resolve PUUIDs from gameName/tagLine to handle API key rotation
+    // (dev RGAPI keys expire every 24h and old PUUIDs become undecryptable)
     for (const tracked of this.trackedPlayers) {
       try {
         await this.initializePlayer(tracked);
@@ -42,6 +43,16 @@ class PollingService {
   }
 
   async initializePlayer(tracked) {
+    // Skip Riot API call if player already exists in DB
+    const allPlayers = await this.db.getAllPlayers();
+    const existing = allPlayers.find(
+      p => p.game_name === tracked.gameName && p.tag_line === tracked.tagLine
+    );
+    if (existing) {
+      console.log(`${tracked.gameName}#${tracked.tagLine} already in DB, skipping API fetch`);
+      return;
+    }
+
     const account = await this.riotApi.getAccountByRiotId(tracked.gameName, tracked.tagLine);
     if (!account || !account.puuid) throw new Error('Could not fetch account info');
 
@@ -112,13 +123,19 @@ if (needed > 0) {
   while (rankedMatches.length < targetCount) {
     console.log(`Fetching 2026 matches ${start}-${start + batchSize}...`);
 
-    const matchIds = await this.riotApi.getMatchIdsByPuuid(
-      player.puuid,
-      batchSize,
-      player.routing_region,
-      start,
-      START_TIME_2026
-    );
+    let matchIds;
+    try {
+      matchIds = await this.riotApi.getMatchIdsByPuuid(
+        player.puuid,
+        batchSize,
+        player.routing_region,
+        start,
+        START_TIME_2026
+      );
+    } catch (error) {
+      console.error(`Failed to fetch match IDs for ${player.game_name}: ${error.message}`);
+      break;
+    }
     windowRequests += 1;
 
     if (matchIds.length === 0) {
@@ -234,7 +251,13 @@ async updatePlayerData(puuid) {
   }
 
   // Fetch recent matches and check for new ranked ones
-  const matchIds = await this.riotApi.getMatchIdsByPuuid(player.puuid, 20, player.routing_region);
+  let matchIds;
+  try {
+    matchIds = await this.riotApi.getMatchIdsByPuuid(player.puuid, 20, player.routing_region);
+  } catch (error) {
+    console.error(`Failed to fetch match IDs for ${player.game_name}: ${error.message}`);
+    return;
+  }
 
   if (matchIds.length === 0) return;
 

@@ -61,7 +61,12 @@ class RiotApiClient {
         await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
         return this.makeRequest(url, region);
       }
-      throw error;
+      // Throw a clean error without the full axios object (which leaks API keys in logs)
+      const status = error.response?.status || 'NETWORK_ERROR';
+      const message = error.response?.data?.status?.message || error.message;
+      const cleanError = new Error(`Riot API ${status}: ${message}`);
+      cleanError.status = status;
+      throw cleanError;
     }
   }
 
